@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Class Name="Utilities.EmptyEventArgs&lt;T&gt;">
+    <Position X="5.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAIAAAACAAAAAAACAAAAAAAAAAA=</HashCode>
+      <FileName>Utilities.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Utilities.Networking.DataRecievedEventArgs">
+    <Position X="3.5" Y="3.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAgAAAAAAAAAAAAAAAAABABAAAABAAAAAACAEAAAA=</HashCode>
+      <FileName>Events.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Utilities.Networking.ServerClosedEventArgs">
+    <Position X="5.75" Y="8" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAA=</HashCode>
+      <FileName>Events.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Utilities.Networking.ListenStopEventArgs">
+    <Position X="5.75" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAA=</HashCode>
+      <FileName>Events.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Utilities.Networking.ListenStartEventArgs">
+    <Position X="6.75" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAA=</HashCode>
+      <FileName>Events.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Utilities.Networking.DataSentEventArgs">
+    <Position X="8" Y="5.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAA=</HashCode>
+      <FileName>Events.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Utilities.Networking.NetworkConnection">
+    <Position X="8" Y="8.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAQAAEAEAAAAAAKAAAAAAAABEAEAAAAIA=</HashCode>
+      <FileName>NetworkConnection.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Utilities.Networking.OneToManyNetworkConnection">
+    <Position X="4.5" Y="13.5" Width="3.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAgCAIAAAAEAAAAAAAAAAAAIAQAAAFgAABIA=</HashCode>
+      <FileName>OneToManyNetworkConnection.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Utilities.Networking.OneToOneNetworkConnection">
+    <Position X="9.75" Y="13.5" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAgACAgASEAQEADABAAAAAAAAAAAECANAAABIA=</HashCode>
+      <FileName>OneToOneNetworkConnection.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Utilities.Networking.ServerThreadState">
+    <Position X="13.25" Y="0.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAABABAAAABAAAAAABAAAAAA=</HashCode>
+      <FileName>States.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Utilities.Networking.ServerStartInfo">
+    <Position X="3.5" Y="6.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAQAAAABAAAAA=</HashCode>
+      <FileName>States.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Utilities.Networking.ServerClosedResult">
+    <Position X="3.5" Y="9.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAIAAAAAA=</HashCode>
+      <FileName>States.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Utilities.Controls.IpField">
+    <Position X="10" Y="0.5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAQAACAAABAAAACAAABCIAAAAAQAEAAAAAAAAAA=</HashCode>
+      <FileName>IpField.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Enum Name="Utilities.Networking.ServerState">
+    <Position X="11.5" Y="9.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAAAAAAAAAAQAAgAAAAAAAAAAAAAAIAAAAAAAAAAA=</HashCode>
+      <FileName>States.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Delegate Name="Utilities.Networking.OnDataRecievedEventHandler">
+    <Position X="11.5" Y="5.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAEAAA=</HashCode>
+      <FileName>Events.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="Utilities.Networking.OnServerClosedEventHandler" Collapsed="true">
+    <Position X="11.5" Y="7.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAIAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Events.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="Utilities.Networking.OnDataSentEventHandler" Collapsed="true">
+    <Position X="11.5" Y="8.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAQAAAQAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Events.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="Utilities.Networking.OnListenStopEventHandler" Collapsed="true">
+    <Position X="11.5" Y="6.75" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAABAAA=</HashCode>
+      <FileName>Events.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="Utilities.Networking.OnListenStartEventHandler" Collapsed="true">
+    <Position X="11.5" Y="9" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAQABAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Events.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
