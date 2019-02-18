@@ -17,11 +17,9 @@ namespace Utilities.Networking
         private readonly Thread[] _workers;
         private readonly ManualResetEvent _stop, _ready;
         private Queue<HttpListenerContext> _queue;
-        private readonly ServerContainer _parent;
 
-        public HttpServer(ServerContainer parent, int maxThreads)
+        public HttpServer(int maxThreads)
         {
-            _parent = parent;
             _workers = new Thread[maxThreads];
             _queue = new Queue<HttpListenerContext>();
             _stop = new ManualResetEvent(false);
@@ -96,62 +94,11 @@ namespace Utilities.Networking
                     }
                 }
 
-                try { HttpServer_ProcessRequest(context); }
+                try { ProcessRequest(context); }
                 catch (Exception e) { Console.Error.WriteLine(e); }
             }
         }
 
-        private void HttpServer_ProcessRequest(System.Net.HttpListenerContext context)
-        {
-            var data_text = new StreamReader(context.Request.InputStream,
-            context.Request.ContentEncoding).ReadToEnd();
-
-            //functions used to decode json encoded data.
-            var data1 = Uri.UnescapeDataString(data_text);
-            string da = Regex.Unescape(data_text);
-
-            var cleaned_data = WebUtility.UrlDecode(data_text);
-
-            context.Response.StatusCode = 200;
-            context.Response.StatusDescription = "OK";
-
-            string[] pairs = cleaned_data.Split(new char[] { '&' });
-            Dictionary<string, string> valuePairs = new Dictionary<string, string>(10);
-            foreach (var pair in pairs)
-            {
-                var values = pair.Split(new char[] { '=' });
-                valuePairs.Add(values[0], values[1]);
-            }
-
-            context.Response.Headers.Clear();
-            context.Response.SendChunked = false;
-            context.Response.StatusCode = 200;
-            context.Response.Headers.Add("Server", String.Empty);
-            context.Response.Headers.Add("Date", String.Empty);
-            context.Response.Close();
-
-            ProcessRequestCT(valuePairs);
-        }
-
-        delegate void ProcessRequestCallback(Dictionary<string, string> valuePairs);
-        private void ProcessRequestCT(Dictionary<string, string> valuePairs)
-        {
-            if (_parent.InvokeRequired)
-            {
-                ProcessRequestCallback d = new ProcessRequestCallback(ProcessRequestCT);
-                try
-                {
-                    _parent.Invoke(d, new object[] { valuePairs });
-                }
-                catch
-                {
-                    throw;
-                }
-            }
-            else
-            {
-                _parent.ProcessRequest(valuePairs);
-            }
-        }
+        public event Action<HttpListenerContext> ProcessRequest;
     }
 }
