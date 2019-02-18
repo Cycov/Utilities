@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Utilities.Registry
 {
@@ -13,7 +14,8 @@ namespace Utilities.Registry
 
     class RegistryHandling
     {
-        RegistryKey baseRegistryKey = Registry.CurrentUser;
+        // TODO: Not working Registry.CurrentUser missing
+        RegistryKey baseRegistryKey = null;
         string subKey = "SOFTWARE\\" + Application.ProductName;
         bool showError = false;
 

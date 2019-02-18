@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using Utilities.Networking.Exceptions;
 
 namespace Utilities.Networking
 {
@@ -19,11 +20,13 @@ namespace Utilities.Networking
                 return serverClosed;
             }
         }
+        public long RecieveBufferSize { get; set; }
         private bool replyWaitStarted = false;
         private BackgroundWorker serverThread;
         TcpClient client = new TcpClient();
         private NetworkStream serverStream;
         private TcpClient clientSocket;
+        private byte[] replyBuffer;
 
         public OneToOneNetworkConnection() : base()
         {
@@ -37,21 +40,26 @@ namespace Utilities.Networking
             this.OnServerClosed += OneToOneNetworkConnection_OnServerClosed;
         }
 
-        private void OneToOneNetworkConnection_OnServerClosed(object sender, ServerClosedEventArgs e)
-        {
-            Connected = false;
-        }
-
         public OneToOneNetworkConnection(int port) : this()
         {
             m_port = port;
+            this.RecieveBufferSize = 1048576;
         }
-
         public OneToOneNetworkConnection(string ip, int port) : this(port)
         {
             this.IP = ip;
         }
+        public OneToOneNetworkConnection(string ip, int port, long recieveBufferSize) : this()
+        {
+            m_port = port;
+            this.IP = ip;
+            this.RecieveBufferSize = recieveBufferSize;
+        }
 
+        private void OneToOneNetworkConnection_OnServerClosed(object sender, ServerClosedEventArgs e)
+        {
+            Connected = false;
+        }
 
         public override void StartListening(int port)
         {
@@ -66,13 +74,21 @@ namespace Utilities.Networking
         {
             TcpListener serverSocket = new TcpListener(System.Net.IPAddress.Any, m_port);
             serverClosed = false;
-            //this blocks the thread, server thread should run in a separate thread
-            // WARNING : run serverThread in another bgworker and call OnDataRecieved from there
+            new Thread(() =>
+            {
                 clientSocket = default(TcpClient);
-                serverSocket.Start();
+                try
+                {
+                    serverSocket.Start();
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
                 clientSocket = serverSocket.AcceptTcpClient();
                 Connected = true;
                 serverThread.RunWorkerAsync(new ServerStartInfo(serverSocket, clientSocket));
+            }).Start();
         }
 
         public override void StopListening()
@@ -89,6 +105,19 @@ namespace Utilities.Networking
             serverClosed = true;
         }
 
+        public void Connect(int port)
+        {
+            m_port = port;
+            Connect();
+        }
+
+        public void Connect()
+        {
+            if (!client.Connected)
+                client.Connect(IP, m_port);
+            Connected = true;
+        }
+
         public override void Send(byte[] data)
         {
             try
@@ -100,18 +129,31 @@ namespace Utilities.Networking
             }
             catch (Exception ex)
             {
-                throw new Exception("Could not connect to server, check if the device with ip " + IP + " is connected and the program is allowed through firewall", ex);
+                throw new ConnectionErrorException("Could not connect to server, check if the device with ip " + IP + " is connected and the program is allowed through firewall", ex);
             }
+
             try
             {
                 serverStream.WriteTimeout = 200;
-                serverStream.Write(data, 0, data.Length);
-                Connected = true;
-                OnDataSent?.Invoke(this, new DataSentEventArgs(data, StringTerminator));
-                if (!replyWaitStarted) //TODO: Do something CPU usage of this
+                byte[] bytes = BitConverter.GetBytes(data.Length);
+                System.Diagnostics.Debug.WriteLine(data.Length);
+                serverStream.Write(new byte[] { 0xAA, 0xFF, bytes[0], bytes[1], bytes[2], bytes[3] }, 0, sizeof(int) + 2);
+                byte[] response = new byte[2];
+                serverStream.Read(response, 0, 2);
+                if (response[0] == 'o' && response[1] == 'k')
                 {
-                    ThreadPool.QueueUserWorkItem(WaitForReply, serverStream);
-                    replyWaitStarted = true;
+                    serverStream.Write(data, 0, data.Length);
+                    Connected = true;
+                    OnDataSent?.Invoke(this, new DataSentEventArgs(data, StringTerminator));
+                    if (!replyWaitStarted) //TODO: Do something CPU usage of this
+                    {
+                        //ThreadPool.QueueUserWorkItem(WaitForReply, serverStream);
+                        //replyWaitStarted = true;
+                    }
+                }
+                else
+                {
+                    throw new CommunicationException("Invalid response recieved from server");
                 }
             }
             catch (System.IO.IOException ex)
@@ -134,7 +176,12 @@ namespace Utilities.Networking
             if (serverClosed)
                 throw new InvalidOperationException("The server is not open");
             NetworkStream stream = clientSocket.GetStream();
-            stream.Write(data, 0, data.Length);
+
+            stream.Write(BitConverter.GetBytes(data.Length), 0, sizeof(int));
+            replyBuffer = data;
+
+
+            OnDataSent?.Invoke(this, new DataSentEventArgs(data, StringTerminator));
         }
 
         public void Reply(string text)
@@ -149,8 +196,15 @@ namespace Utilities.Networking
                 try
                 {
                     NetworkStream serverStream = data as NetworkStream;
-                    byte[] inStream = new byte[1048576];
-                    serverStream.Read(inStream, 0, client.ReceiveBufferSize);
+                    byte[] bytesToRecieve = new byte[sizeof(int)];
+
+                    serverStream.Read(bytesToRecieve, 0, sizeof(int));
+                    serverStream.Write(new byte[] { (byte)'o', (byte)'k' }, 0, 2);
+
+                    int byt = BitConverter.ToInt32(bytesToRecieve, 0);
+                    byte[] inStream = new byte[byt];
+                    serverStream.Read(inStream, 0, byt);
+
                     OnDataRecieved?.Invoke(this, new DataRecievedEventArgs(inStream, client.ReceiveBufferSize,(byte)StringTerminator));
                     // WARNING : cross thread errors may occur from here
                 }
@@ -205,7 +259,7 @@ namespace Utilities.Networking
                 try
                 {
                     NetworkStream networkStream = info.ClientSocket.GetStream();
-                    byte[] bytesFrom = new byte[1048576];
+                    byte[] bytesToRecieve = new byte[sizeof(int) + 2];
 
                     if (serverThread.CancellationPending)
                     {
@@ -213,21 +267,48 @@ namespace Utilities.Networking
                         e.Result = new ServerClosedResult("Canceled", info);
                         return;
                     }
-                    networkStream.Read(bytesFrom, 0, (int)info.ClientSocket.ReceiveBufferSize);
+                    networkStream.Read(bytesToRecieve, 0, sizeof(int) + 2);
 
-                    if (serverThread.CancellationPending)
+                    //That mean this comes from reply
+                    if (bytesToRecieve[2] == 'o' && bytesToRecieve[3] == 'k' && bytesToRecieve[4] == 0)
                     {
-                        e.Cancel = true;
-                        e.Result = new ServerClosedResult("Canceled", info);
-                        return;
+                        if (replyBuffer != null)
+                        {
+                            networkStream.Write(replyBuffer, 0, replyBuffer.Length);
+                            replyBuffer = null;
+                        }
+                        else
+                        {
+                            #pragma warning disable
+                            throw new ExecutionEngineException("An error while getting the reply buffer. This may be due to the sending of 'ok' over the network when a message length was expected");
+                            #pragma warning restore
+                        }
                     }
-                    serverThread.ReportProgress(requests++, new ServerThreadState(bytesFrom, info.ClientSocket.ReceiveBufferSize, ServerState.Running));
-
-                    if (serverThread.CancellationPending)
+                    else
                     {
-                        e.Cancel = true;
-                        e.Result = new ServerClosedResult("Canceled", info);
-                        return;
+                        if (bytesToRecieve[0] == 0)
+                            continue;
+                        networkStream.Write(new byte[] { (byte)'o', (byte)'k' }, 0, 2);
+
+                        int byt = BitConverter.ToInt32(new byte[] { bytesToRecieve[2], bytesToRecieve[3], bytesToRecieve[4], bytesToRecieve[5] } , 0);
+                        System.Diagnostics.Debug.WriteLine(byt);
+                        byte[] bytesFrom = new byte[byt];
+                        networkStream.Read(bytesFrom, 0, byt);
+
+                        if (serverThread.CancellationPending)
+                        {
+                            e.Cancel = true;
+                            e.Result = new ServerClosedResult("Canceled", info);
+                            return;
+                        }
+                        serverThread.ReportProgress(requests++, new ServerThreadState(bytesFrom, info.ClientSocket.ReceiveBufferSize, ServerState.Running));
+
+                        if (serverThread.CancellationPending)
+                        {
+                            e.Cancel = true;
+                            e.Result = new ServerClosedResult("Canceled", info);
+                            return;
+                        }
                     }
                     networkStream.Flush();
                 }

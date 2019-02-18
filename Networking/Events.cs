@@ -23,6 +23,8 @@ namespace Utilities.Networking
             {
                 string dataFromClient = Encoding.ASCII.GetString(Data);
                 int indexOfTerminator = dataFromClient.IndexOf((char)EndByte);
+                if (indexOfTerminator < 0)
+                    return String.Empty;
                 return dataFromClient.Substring(0, indexOfTerminator);
             }
         }
@@ -136,7 +138,11 @@ namespace Utilities.Networking
             this.terminator = terminator;
 
             string text = Encoding.ASCII.GetString(Data);
-            Message = text.Substring(0, text.IndexOf(terminator));            
+            int index = text.IndexOf(terminator);
+            if (index < 0)
+                Message = String.Empty;
+            else
+            Message = text.Substring(0,index);
         }
     }
 }
