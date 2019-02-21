@@ -28,10 +28,20 @@ namespace Utilities.Networking
             _listenerThread = new Thread(HandleRequests);
         }
 
-        public void Start(int port)
+        public void Start(string ip, int port)
         {
-            _listener.Prefixes.Add(String.Format(@"http://+:{0}/", port));
-            _listener.Start();
+            _listener.Prefixes.Add(String.Format(@"http://{0}:{1}/", ip, port));
+            try
+            {
+                _listener.Start();
+            }
+            catch (HttpListenerException ex)
+            {
+                if (ex.Message == "Access is denied")
+                    throw new Exceptions.HttpServerAccessDeniedExceptionException($"Access is denied on ip {ip}:{port.ToString()}. This can be due to the usage of wildcards in ip field", ex);
+                else
+                    throw;
+            }
             _listenerThread.Start();
 
             for (int i = 0; i < _workers.Length; i++)

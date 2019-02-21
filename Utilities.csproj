@@ -56,6 +56,7 @@
     <Compile Include="Networking\Events.cs" />
     <Compile Include="Networking\Exceptions\CommunicationException.cs" />
     <Compile Include="Networking\Exceptions\ConnectionErrorException.cs" />
+    <Compile Include="Networking\Exceptions\HttpServerAccessDeniedException.cs" />
     <Compile Include="Networking\HttpServer.cs" />
     <Compile Include="Networking\NetworkConnection.cs">
       <SubType>Component</SubType>
